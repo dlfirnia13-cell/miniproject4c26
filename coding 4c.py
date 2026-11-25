@@ -62,3 +62,13 @@ def simpan_csv(path, kolom, baris):
         w = csv.DictWriter(f, fieldnames=kolom, extrasaction="ignore", restval="")
         w.writeheader()
         w.writerows(baris)
+
+def login():
+    judul("LOGIN - PERENCANA WISATA YOGYAKARTA")
+    users = {}
+    if os.path.exists(FILE_USER):
+        with open(FILE_USER, encoding="utf-8") as f:
+            for baris in f:
+                bagian = baris.rstrip("\n").split("\t")
+                if len(bagian) == 2:
+                    users[bagian[0]] = bagian[1]
