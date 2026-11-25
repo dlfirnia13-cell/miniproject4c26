@@ -1,8 +1,6 @@
 # Program Perencanaan Itinerari Wisata Harian di Daerah Istimewa Yogyakarta
 
-![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
-![Interface](https://img.shields.io/badge/Interface-CLI-lightgrey)
-![Dependencies](https://img.shields.io/badge/Dependencies-Standar%20Library-brightgreen)
+![Python](https://img.shields.io/badge/Python-3.13%2B-blue)
 
 Program berbasis terminal (CLI) yang dibuat dengan Python untuk menyusun itinerari wisata harian di Daerah Istimewa Yogyakarta berdasarkan **anggaran, waktu, rating, dan rute terdekat**. Data tempat wisata dibaca dari file CSV dan dapat ditambah atau diubah langsung dari dalam program.
 
@@ -41,7 +39,7 @@ Program berbasis terminal (CLI) yang dibuat dengan Python untuk menyusun itinera
 
 ## Persyaratan
 
-- Python **3.8** atau lebih baru
+- Python **3.13** atau lebih baru
 - Tidak perlu instalasi library tambahan (hanya memakai `csv`, `math`, `os`, `sys`, `time`, dan `statistics` dari standard library)
 
 ## Struktur folder
