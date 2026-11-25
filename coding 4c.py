@@ -5,10 +5,43 @@ import sys
 import time
 from statistics import median
 
+MATA_KULIAH = "PEMROGRAMAN KOMPUTER"
+KELOMPOK = "KELOMPOK 4C"
+JUDUL = ["PROGRAM PERENCANAAN", "ITINERARI WISATA HARIAN DI DAERAH", "ISTIMEWA YOGYAKARTA BERDASARKAN", "ANGGARAN, WAKTU, DAN RUTE TERDEKAT", "MENGGUNAKAN PYTHON"]
+ANGGOTA = [("Dela Firnia", "2610932026"), ("Haikal Yandri", "2610932022"), ("Khairina Ardelia Tarigan", "2610933004"), ("Zahwa Aqila Ramadhani", "2610933024")]
+TAHUN = "2026"
+LEBAR = 70
 KOLOM = ["Place_Name", "Category", "Price", "Rating", "Time_Minutes", "Latitude", "Longitude"]
 FOLDER = os.path.dirname(os.path.abspath(__file__))
 FILE_USER = os.path.join(FOLDER, "users.txt")
 TITIK_DEFAULT = "Nol Kilometer Jl.Malioboro"
+INSTANSI = ["LABORATORIUM SISTEM INFORMASI DAN KEPUTUSAN","DEPARTEMEN TEKNIK INDUSTRI", "FAKULTAS TEKNIK","UNIVERSITAS ANDALAS"]
+DOSEN = "Dr. Asmuliardi Muluk, S.T., M.T."
+ASISTEN = "Kurnia Rahmat Illahi"
+
+def baris(teks=""):
+    return "|" + teks.center(LEBAR - 2) + "|"
+
+def buat_cover():
+    garis = "+" + "=" * (LEBAR - 2) + "+"
+    isi = [garis, baris(), baris("MINI PROJECT"), baris(MATA_KULIAH), baris()]
+
+    for potongan in JUDUL:
+        isi.append(baris(potongan))
+
+    isi += [baris(), baris("Oleh:"), baris(KELOMPOK), baris(), baris("Anggota")]
+    for nama, nim in ANGGOTA:
+        isi.append(baris(f"{nama} {nim}"))
+
+    isi += [baris(), baris("Asisten Pembimbing:"), baris(ASISTEN),
+            baris(), baris("Dosen Pengampu:"), baris(DOSEN), baris()]
+
+    for teks in INSTANSI:
+        isi.append(baris(teks))
+
+    isi += [baris(TAHUN), baris(), garis]
+    return isi
+
 
 def angka(teks):
     try:
@@ -65,36 +98,29 @@ def simpan_csv(path, kolom, baris):
 
 def login():
     judul("LOGIN - PERENCANA WISATA YOGYAKARTA")
-    users = {}
-    if os.path.exists(FILE_USER):
-        with open(FILE_USER, encoding="utf-8") as f:
-            for baris in f:
-                bagian = baris.rstrip("\n").split("\t")
-                if len(bagian) == 2:
-                    users[bagian[0]] = bagian[1]
-
-    nama = ""
-    while not nama:
-        nama = input("Nama: ").strip().replace("\t", " ")
-
-    if nama not in users:                                 
-        if input(f"'{nama}' belum terdaftar. Daftar? (y/n) [y]: ").strip().lower() == "n":
-            return None
-        while True:
-            sandi = input("Buat password (min 4 karakter): ")
-            if len(sandi) >= 4:
+    users = {
+        "Dela Firnia": "2610932026",
+        "Haikal Yandri": "2610932022",
+        "Khairina Ardelia Tarigan": "2610933004",
+        "Zahwa Aqila Ramadhani": "2610933024"
+    }
+    while True:
+        nama = input("Nama: ").strip()
+        password = input("Password (NIM): ").strip()
+        cocok = False
+        for nama_user, sandi in users.items():
+            if nama.lower() == nama_user.lower() and password == sandi:
+                nama = nama_user
+                cocok = True
                 break
-        with open(FILE_USER, "a", encoding="utf-8") as f:
-            f.write(f"{nama}\t{sandi}\n")
-        print(f"Akun dibuat. Selamat datang, {nama}!")
-        return nama
 
-    for _ in range(3):                                      
-        if input("Password: ") == users[nama]:
-            print(f"Login berhasil. Selamat datang kembali, {nama}!")
+        if cocok:
+            print(f"\nLogin berhasil. Selamat datang, {nama}!")
             return nama
-        print("  Password salah.")
-    return None
+        else:
+            print("\n[!] Nama atau password salah.")
+            print("Silakan masukkan kembali.\n")
+
 
 def bersihkan(baris):
     tempat, nama_ada, durasi_kat = [], set(), {}
@@ -121,71 +147,183 @@ def bersihkan(baris):
     return tempat
 
 
-def tampilkan_dataset(baris, per_halaman=15):
+def tampilkan_dataset(baris):
     if not baris:
         input("Dataset kosong. Tekan ENTER...")
-        return
-    kop = ["No"] + KOLOM
-    isi = [[i] + [(r[k] or "-")[:30] for k in KOLOM] for i, r in enumerate(baris, 1)]
-    total_hal = math.ceil(len(isi) / per_halaman)
-    hal = 0
-    while True:
-        mulai = hal * per_halaman
-        tabel(kop, isi[mulai:mulai + per_halaman])
-        print(f"Halaman {hal + 1}/{total_hal} | total {len(isi)} data")
-        p = input("[n] berikut  [p] sebelumnya  [Enter] kembali: ").strip().lower()
-        if p == "":
-            return
-        if p == "n" and hal < total_hal - 1:
-            hal += 1
-        elif p == "p" and hal > 0:
-            hal -= 1
+        return 
 
+    per_kolom = 20
+    jumlah_per_halaman = 40
+
+    total_data = len(baris)
+    total_halaman = math.ceil(total_data / jumlah_per_halaman)
+
+    halaman = 0
+
+    while True:
+        mulai = halaman * jumlah_per_halaman
+
+        kop = ["Nama Tempat", "Nama Tempat"]
+        isi = []
+
+        for i in range(per_kolom):
+            data1 = mulai + i
+            data2 = mulai + per_kolom + i
+
+            nama1 = (
+                f"{data1 + 1}. {baris[data1]['Place_Name']}"
+                if data1 < total_data else ""
+            )
+
+            nama2 = (
+                f"{data2 + 1}. {baris[data2]['Place_Name']}"
+                if data2 < total_data else ""
+            )
+
+            isi.append([nama1, nama2])
+
+        judul("DATASET TEMPAT WISATA YOGYAKARTA")
+        tabel(kop, isi)
+
+        print(f"Total data: {total_data}")
+        print(f"Halaman {halaman + 1}/{total_halaman}")
+        pilih = input("\n[n] Berikutnya  [p] Sebelumnya  [Enter] Kembali: ").strip().lower()
+
+        if pilih == "":
+            return
+
+        elif pilih == "n" and halaman < total_halaman - 1:
+            halaman += 1
+
+        elif pilih == "p" and halaman > 0:
+            halaman -= 1
+
+def tampilkan_dataset(baris, pilih_data=False):
+    if not baris:
+        input("Dataset kosong. Tekan ENTER...")
+        return None
+
+    per_kolom = 20
+    jumlah_per_halaman = 40
+
+    total_data = len(baris)
+    total_halaman = math.ceil(total_data / jumlah_per_halaman)
+
+    halaman = 0
+
+    while True:
+        mulai = halaman * jumlah_per_halaman
+
+        kop = ["Nama Tempat", "Nama Tempat"]
+        isi = []
+
+        for i in range(per_kolom):
+            data1 = mulai + i
+            data2 = mulai + per_kolom + i
+
+            nama1 = f"{data1 + 1}. {baris[data1]['Place_Name']}" if data1 < total_data else ""
+            nama2 = f"{data2 + 1}. {baris[data2]['Place_Name']}" if data2 < total_data else ""
+
+            isi.append([nama1, nama2])
+
+        judul("DATASET TEMPAT WISATA YOGYAKARTA")
+        tabel(kop, isi)
+
+        print(f"Total data: {total_data}")
+        print(f"Halaman {halaman + 1}/{total_halaman}")
+
+        if pilih_data:
+            pilih = input("\n[n] Berikutnya  [p] Sebelumnya  [nomor data] Pilih  [Enter] Batal: ").strip().lower()
+        else:
+            pilih = input("\n[n] Berikutnya  [p] Sebelumnya  [Enter] Kembali: ").strip().lower()
+
+    
+        if pilih == "":
+            return None
+        elif pilih == "n" and halaman < total_halaman - 1:
+            halaman += 1
+        elif pilih == "p" and halaman > 0:
+            halaman -= 1
+        elif pilih_data and pilih.isdigit() and 1 <= int(pilih) <= total_data:
+            return int(pilih) - 1         
+    
 
 def kelola_data(path, kolom, baris, sesi):
-    batas = {"Price": (0, 1e12), "Rating": (0, 5), "Time_Minutes": (1, 1440),
-             "Latitude": (-90, 90), "Longitude": (-180, 180)}
     judul("KELOLA DATA")
-    pilih = input("1. Tambah data  2. Ubah data  (Enter = batal): ").strip()
+    pilih = input("1. Tambah data  2. Ubah data  (Enter = kembali): ").strip()
+
     if pilih == "1":
-        asli, data = None, dict.fromkeys(kolom, "")
+        asli = None
+        data = dict.fromkeys(kolom, "")
+
     elif pilih == "2":
-        tampilkan_dataset(baris)
-        no = input("Nomor data yang diubah: ").strip()
-        if not (no.isdigit() and 1 <= int(no) <= len(baris)):
+        indeks = tampilkan_dataset(baris, pilih_data=True)   
+        if indeks is None:
             return
-        asli = baris[int(no) - 1]
+        asli = baris[indeks]
         data = dict(asli)
+
+        print(f"\nData yang dipilih: {asli['Place_Name']}")
+        tabel(["Kolom", "Isi Saat Ini"], [[k, asli[k] or "-"] for k in KOLOM])
     else:
         return
 
+    print("\nMasukkan data baru.")
+    print("Tekan ENTER untuk mempertahankan data lama.")
+    print("Ketik 'batal' kapan saja untuk kembali ke menu.\n")
+
+    batas = {"Price": (0, 1e12),
+             "Rating": (0, 5),
+             "Time_Minutes": (1, 1440),
+             "Latitude": (-90, 90),
+             "Longitude": (-180, 180)}
+    
     for k in KOLOM:                                       
         lama = data[k] or ""
         while True:
             isi = input(f"{k}" + (f" [{lama}]" if lama else "") + ": ").strip() or lama
+
+            if isi.lower() == "batal":                 # pengguna tidak jadi
+                print("\nDibatalkan. Tidak ada data yang disimpan.")
+                return
+
+            if isi == "":
+                isi = lama
+
             if k in ("Place_Name", "Category"):
                 ok = isi != ""
             else:
                 x = angka(isi)
-                ok = x is not None and batas[k][0] <= x <= batas[k][1]
+                ok = (x is not None and batas[k][0] <= x <= batas[k][1])
+
             if ok:
                 break
-            print("  Input tidak valid.")
+            print("Input tidak valid. Silakan masukkan kembali.")
         data[k] = isi
 
     for r in baris:                                     
-        if r is not asli and r["Place_Name"].strip().lower() == data["Place_Name"].lower():
-            print("[!] Nama sudah dipakai. Dibatalkan.")
+        if r is not asli and (r["Place_Name"] or "").strip().lower() == data["Place_Name"].strip().lower():
+            print("\n[!] Nama tempat sudah digunakan.")
+            print("Data tidak jadi disimpan.")
             return
+
+    print("\nData yang akan disimpan:")
+    tabel(["Kolom", "Isi"], [[k, data[k]] for k in KOLOM])
+    if input("Simpan data ini? (y/n) [y]: ").strip().lower() == "n":
+        print("\nDibatalkan. Tidak ada data yang disimpan.")
+        return
 
     if asli is None:
         baris.append(data)
         sesi["tambah"] += 1
+        print("\nData berhasil ditambahkan.")
     else:
         asli.update(data)
         sesi["ubah"] += 1
+        print("\nData berhasil diubah.")
+
     simpan_csv(path, kolom, baris)
-    print("Perubahan disimpan ke CSV.")
+    print("Perubahan berhasil disimpan ke dataset CSV.")
 
 def urut(awal, tempat):
     sisa, rute, pos = list(tempat), [], awal
@@ -322,14 +460,12 @@ def buat_itinerari(tempat, lokal):
 
 def main():
     path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(FOLDER, "tour.csv")
-
-    print("=" * 70)
-    print("MINI PROJECT PEMROGRAMAN KOMPUTER".center(70))
-    print("Program Perencanaan Itinerari Wisata Harian di Yogyakarta".center(70))
-    print("Kelompok 4C - Universitas Andalas".center(70))
-    print("=" * 70)
+    for a in buat_cover():
+        print(a)
+    input("\nTekan ENTER untuk melanjutkan ke login...")
 
     nama = login()
+    
     if not nama:
         print("Login gagal. Program ditutup.")
         return
