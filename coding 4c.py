@@ -30,6 +30,7 @@ def buat_cover():
         isi.append(baris(potongan))
 
     isi += [baris(), baris("Oleh:"), baris(KELOMPOK), baris(), baris("Anggota")]
+    lebar_nama = max(len(nama) for nama, _ in ANGGOTA)
     for nama, nim in ANGGOTA:
         isi.append(baris(f"{nama} {nim}"))
 
@@ -67,10 +68,20 @@ def tanya(pesan, default, tipe=float):
         except ValueError:
             print("  Masukkan angka yang valid.")
 
-def tabel(kop, isi):
+def tabel(kop, isi, rata=None, minlebar=None):
+    rata = rata or "c" * len(kop)
     semua = [kop] + isi
     lebar = [max(len(str(b[i])) for b in semua) + 2 for i in range(len(kop))]
+    if minlebar:
+        lebar = [max(w, m) for w, m in zip(lebar, minlebar)]
     garis = "+" + "+".join("-" * w for w in lebar) + "+"
+
+    def sel(teks, w, r, header):
+        teks = str(teks)
+        if r == "l" and not header:
+            return (" " + teks).ljust(w)
+        return teks.center(w)
+    
     print(garis)
     for n, b in enumerate(semua):
         print("|" + "|".join(str(s).center(w) for s, w in zip(b, lebar)) + "|")
@@ -146,58 +157,6 @@ def bersihkan(baris):
             t["durasi"] = median(durasi_kat[t["kategori"]]) if t["kategori"] in durasi_kat else median_umum
     return tempat
 
-
-def tampilkan_dataset(baris):
-    if not baris:
-        input("Dataset kosong. Tekan ENTER...")
-        return 
-
-    per_kolom = 20
-    jumlah_per_halaman = 40
-
-    total_data = len(baris)
-    total_halaman = math.ceil(total_data / jumlah_per_halaman)
-
-    halaman = 0
-
-    while True:
-        mulai = halaman * jumlah_per_halaman
-
-        kop = ["Nama Tempat", "Nama Tempat"]
-        isi = []
-
-        for i in range(per_kolom):
-            data1 = mulai + i
-            data2 = mulai + per_kolom + i
-
-            nama1 = (
-                f"{data1 + 1}. {baris[data1]['Place_Name']}"
-                if data1 < total_data else ""
-            )
-
-            nama2 = (
-                f"{data2 + 1}. {baris[data2]['Place_Name']}"
-                if data2 < total_data else ""
-            )
-
-            isi.append([nama1, nama2])
-
-        judul("DATASET TEMPAT WISATA YOGYAKARTA")
-        tabel(kop, isi)
-
-        print(f"Total data: {total_data}")
-        print(f"Halaman {halaman + 1}/{total_halaman}")
-        pilih = input("\n[n] Berikutnya  [p] Sebelumnya  [Enter] Kembali: ").strip().lower()
-
-        if pilih == "":
-            return
-
-        elif pilih == "n" and halaman < total_halaman - 1:
-            halaman += 1
-
-        elif pilih == "p" and halaman > 0:
-            halaman -= 1
-
 def tampilkan_dataset(baris, pilih_data=False):
     if not baris:
         input("Dataset kosong. Tekan ENTER...")
@@ -211,42 +170,59 @@ def tampilkan_dataset(baris, pilih_data=False):
 
     halaman = 0
 
+    w_no = len(str(total_data)) + 2
+    w_nama = max(len(str(r["Place_Name"])) for r in baris) + 2
+    minlebar = [w_no, w_nama, w_no, w_nama]
+
+
     while True:
         mulai = halaman * jumlah_per_halaman
 
-        kop = ["Nama Tempat", "Nama Tempat"]
+        kop = ["No", "Nama Tempat", "No", "Nama Tempat"]
         isi = []
 
         for i in range(per_kolom):
             data1 = mulai + i
             data2 = mulai + per_kolom + i
 
-            nama1 = f"{data1 + 1}. {baris[data1]['Place_Name']}" if data1 < total_data else ""
-            nama2 = f"{data2 + 1}. {baris[data2]['Place_Name']}" if data2 < total_data else ""
+            no1 = str(data1 + 1) if data1 < total_data else ""
+            nama1 = baris[data1]["Place_Name"] if data1 < total_data else ""
+            no2 = str(data2 + 1) if data2 < total_data else ""
+            nama2 = baris[data2]["Place_Name"] if data2 < total_data else ""
 
-            isi.append([nama1, nama2])
+            if data1 >= total_data:
+                break
+            isi.append([no1, nama1, no2, nama2])
 
         judul("DATASET TEMPAT WISATA YOGYAKARTA")
-        tabel(kop, isi)
+        tabel(kop, isi, rata="clcl", minlebar=minlebar)
 
         print(f"Total data: {total_data}")
         print(f"Halaman {halaman + 1}/{total_halaman}")
 
+        opsi =[]
+        if halaman < total_halaman - 1:
+            opsi.append("[n] Berikutnya")
+        if halaman > 0:
+            opsi.append("[p] Sebelumnya")
         if pilih_data:
-            pilih = input("\n[n] Berikutnya  [p] Sebelumnya  [nomor data] Pilih  [Enter] Batal: ").strip().lower()
+            opsi.append("[nomor data] Pilih")
+            opsi.append("[Enter] Batal")
         else:
-            pilih = input("\n[n] Berikutnya  [p] Sebelumnya  [Enter] Kembali: ").strip().lower()
+            opsi.append("[Enter] Kembali")
+        pilih = input("\n" + "  ".join(opsi) + ": ").strip().lower()
 
-    
         if pilih == "":
             return None
-        elif pilih == "n" and halaman < total_halaman - 1:
-            halaman += 1
+        elif pilih == "n":
+            if halaman < total_halaman - 1:
+                halaman += 1
+            else:
+                return None
         elif pilih == "p" and halaman > 0:
             halaman -= 1
         elif pilih_data and pilih.isdigit() and 1 <= int(pilih) <= total_data:
-            return int(pilih) - 1         
-    
+            return int(pilih) - 1   
 
 def kelola_data(path, kolom, baris, sesi):
     judul("KELOLA DATA")
@@ -269,7 +245,6 @@ def kelola_data(path, kolom, baris, sesi):
         return
 
     print("\nMasukkan data baru.")
-    print("Tekan ENTER untuk mempertahankan data lama.")
     print("Ketik 'batal' kapan saja untuk kembali ke menu.\n")
 
     batas = {"Price": (0, 1e12),
@@ -377,12 +352,16 @@ def buat_itinerari(tempat, lokal):
     daftar_kat = sorted({t["kategori"] for t in tempat})
     for no, k in enumerate(daftar_kat, 1):
         print(f"  {no}. {k}")
-    isi = input("Pilih nomor kategori (pisah koma, Enter = semua): ").strip()
-    try:
-        pilihan = [daftar_kat[int(x) - 1] for x in isi.split(",")] if isi else daftar_kat
-    except (ValueError, IndexError):
-        print("Input tidak valid, memakai semua kategori.")
-        pilihan = daftar_kat
+    while True:
+        isi = input("Pilih nomor kategori (pisah koma, Enter = semua): ").strip()
+        if not isi:
+            pilihan = daftar_kat
+            break
+        nomor = [x.strip() for x in isi.split(",")]
+        if all(x.isdigit() and 1 <= int(x) <= len(daftar_kat) for x in nomor):
+            pilihan = [daftar_kat[int(x) - 1] for x in dict.fromkeys(nomor)]
+            break
+        print("Input tidak valid. Silakan masukkan kembali.")
 
     kandidat = [t for t in tempat if t["kategori"] in pilihan and t["rating"] >= rating_min]
     kandidat.sort(key=lambda t: (-t["rating"], t["harga"]))
